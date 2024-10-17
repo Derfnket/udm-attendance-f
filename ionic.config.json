@@ -1,0 +1,7 @@
+{
+  "name": "udm-attendance",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
