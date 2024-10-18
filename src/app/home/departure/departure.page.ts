@@ -57,7 +57,7 @@ export class DeparturePage implements OnInit, OnDestroy {
       }
 
       // Enregistrement du départ
-      await this.authService.recordDeparture(qrCode, location.latitude, location.longitude, biometricToken).toPromise();
+      await (await this.authService.recordDeparture(qrCode, location.latitude, location.longitude, biometricToken)).toPromise();
       await this.presentToast('Départ enregistré avec succès.');
     } catch (error: any) {
       await this.presentAlert('Erreur', error.message || 'Une erreur est survenue.');

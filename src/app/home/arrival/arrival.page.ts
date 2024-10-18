@@ -59,7 +59,7 @@ export class ArrivalPage implements OnInit {
       }
 
       // Enregistrement de l'arrivée
-      await this.authService.recordArrival(qrCode, location.latitude, location.longitude, biometricToken).toPromise();
+      await (await this.authService.recordArrival(qrCode, location.latitude, location.longitude, biometricToken)).toPromise();
       await this.presentToast('Arrivée enregistrée avec succès.');
     } catch (error: any) {
       await this.presentAlert('Erreur', error.message || 'Une erreur est survenue.');

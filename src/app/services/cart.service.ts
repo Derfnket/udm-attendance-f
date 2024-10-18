@@ -107,7 +107,7 @@ export class CartService {
     const items = this.model.items.filter((item: any) => item.quantity > 0);
 
     if (items?.length == 0) {
-      this.clearCart();
+      // this.clearCart();
       return;
     }
 
@@ -132,34 +132,34 @@ export class CartService {
     this.cart$.next(this.model);
 
     //store data
-    this.saveCart(this.model);
+    // this.saveCart(this.model);
 
     return this.model;
   }
 
-  clearCart() {
-    this.storageService.removeStorage(this.cartStoreName);
-    this.model = null;
-    this.cart$.next(null);
-  }
+  // clearCart() {
+  //   this.storageService.removeStorage(this.cartStoreName);
+  //   this.model = null;
+  //   this.cart$.next(null);
+  // }
 
-  saveCart(data: any) {
-    const model = JSON.stringify(data);
-    this.storageService.setStorage(this.cartStoreName, model);
-  }
+  // saveCart(data: any) {
+  //   const model = JSON.stringify(data);
+  //   this.storageService.setStorage(this.cartStoreName, model);
+  // }
 
   async getCart() {
     let data: any = this.cart$.value;
 
-    if (!data) {
-      data = await this.storageService.getStorage(this.cartStoreName);
-      console.log(data);
+    // if (!data) {
+    //   data = await this.storageService.getStorage(this.cartStoreName);
+    //   console.log(data);
 
-      if (data?.value) {
-        this.model = JSON.parse(data.value);
-        console.log(this.model);
-        this.cart$.next(this.model);
-      }
-    }
+    //   if (data?.value) {
+    //     this.model = JSON.parse(data.value);
+    //     console.log(this.model);
+    //     this.cart$.next(this.model);
+    //   }
+    // }
   }
 }

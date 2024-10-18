@@ -1,3 +1,5 @@
+// src/app/pages/home/home.page.ts
+
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -18,17 +20,23 @@ import {
   IonCol,
   IonCard,
   IonToast,
-  IonBadge, IonFooter, IonBackButton } from '@ionic/angular/standalone';
+  IonBadge,
+  IonFooter,
+  IonBackButton
+} from '@ionic/angular/standalone';
 import { CartService } from '../services/cart.service'; 
 import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { StorageService } from '../services/storage.service'; // Importer StorageService
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
-  imports: [IonBackButton, IonFooter, 
+  imports: [
+    IonBackButton,
+    IonFooter,
     IonBadge,
     IonToast,
     IonCard,
@@ -58,38 +66,44 @@ export class HomePage implements OnInit, OnDestroy {
   userName: string = 'UdM User'; // Nom d'utilisateur par défaut
   cartSub!: Subscription;
   private cartService = inject(CartService);
-  private authService = inject(AuthService); // Injectez AuthService
+  private authService = inject(AuthService); // Injection d'AuthService
+  private storageService = inject(StorageService); // Injection de StorageService
 
   constructor(private router: Router) {}
 
   ngOnInit() {
-    this.cartSub = this.cartService.cart.subscribe({
-      next: (cart) => {
-        console.log(cart);
-        this.totalItems = cart ? cart?.totalItem : 0;
-      },
-    });
-
-    // Charger les informations de l'utilisateur, y compris l'image de profil
-    this.loadUserProfile();
-  }
-
-  loadUserProfile() {
-    const userId = localStorage.getItem('userId');
-    if (userId) {
-      this.authService.getUserProfile().subscribe({
-        next: (response: any) => {
-          const user = response.data;
-          this.userName = user.username || 'UdM User';
-          this.profileImage = user.profileImage || '/assets/imgs/avatar.jpg';
-        },
-        error: (error) => {
-          console.error('Erreur lors de la récupération du profil:', error);
-        },
-      });
+     // Charger les informations de l'utilisateur, y compris l'image de profil
+     this.loadUserProfile();
     }
-  }
 
+    async loadUserProfile() {
+      const token = await this.storageService.getItem('authToken');
+      const userId = await this.storageService.getItem('userId');
+    
+      if (!token || !userId) {
+        console.error("Erreur: Aucun token d'authentification ou ID utilisateur trouvé.");
+        return;
+      }
+    
+      try {
+        const userProfileResponse = await this.authService.getUserProfile();
+        userProfileResponse.subscribe({
+          next: (response: any) => {
+            console.log("Profil utilisateur récupéré:", response);
+            // Mettre à jour l'interface utilisateur avec les données du profil
+          },
+          error: (error: any) => {
+            console.error("Erreur lors de la récupération du profil:", error);
+            if (error.status === 200) {
+              console.error("La réponse est peut-être au format HTML inattendu :", error.error.text);
+            }
+          },
+        });
+      } catch (e) {
+        console.error("Exception lors de la récupération du profil utilisateur:", e);
+      }
+    }
+    
   goToArrival() {
     this.router.navigate(['/arrival']);
   }

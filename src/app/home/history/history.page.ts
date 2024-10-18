@@ -33,12 +33,12 @@ export class HistoryPage implements OnInit {
     });
     await loading.present();
 
-    this.presenceService.getPresenceHistory().subscribe({
-      next: async (data) => {
+    (await this.presenceService.getPresenceHistory()).subscribe({
+      next: async (data: any[]) => {
         this.history = data;
         await loading.dismiss();
       },
-      error: async (err) => {
+      error: async (err: any) => {
         await loading.dismiss();
         const alert = await this.alertController.create({
           header: 'Erreur',

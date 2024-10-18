@@ -1,4 +1,4 @@
-//login.page.ts
+// src/app/pages/login/login.page.ts
 import { Component } from '@angular/core';
 import {
   FormControl,
@@ -19,6 +19,7 @@ import { Router } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { Capacitor } from '@capacitor/core';
+import { StorageService } from '../services/storage.service'; // Importer StorageService
 
 @Component({
   selector: 'app-login',
@@ -39,7 +40,8 @@ export class LoginPage {
     private loadingController: LoadingController,
     private alertController: AlertController,
     private toastController: ToastController,
-    private router: Router
+    private router: Router,
+    private storageService: StorageService // Injection de StorageService
   ) {
     this.initForm();
   }
@@ -54,55 +56,41 @@ export class LoginPage {
   togglePwdVisibility() {
     this.isPwdVisible = !this.isPwdVisible;
   }
-
   async onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-
+  
     const loading = await this.loadingController.create({
       message: 'Connexion en cours...',
     });
     await loading.present();
-
+  
     const email = this.form.value.email;
     const password = this.form.value.password;
-
-    this.authService.login(email, password).subscribe({
-        next: async (response) => {
-          console.log('Réponse du serveur:', response); // Log de la réponse complète
-          await loading.dismiss();
-      
-          if (response && response.user && response.user.id) {
-            localStorage.setItem('authToken', response.access_token);
-            localStorage.setItem('userId', response.user.id);  // Sauvegarder l'ID utilisateur
-            await this.saveCredentials({ email, password });
-            this.router.navigate(['/home']);
-          } else {
-            console.log('Problème avec la réponse utilisateur:', response); // Log si l'utilisateur ou l'ID est absent
-            const alert = await this.alertController.create({
-              header: 'Erreur de connexion',
-              message: 'Réponse inattendue du serveur. Identifiant utilisateur non trouvé.',
-              buttons: ['OK'],
-            });
-            await alert.present();
-          }
-        },
-        error: async (error) => {
-          await loading.dismiss();
-          const alert = await this.alertController.create({
-            header: 'Erreur de connexion',
-            message: 'Identifiants incorrects ou problème de connexion.',
-            buttons: ['OK'],
-          });
-          await alert.present();
-          console.error('Erreur de connexion:', error);
-        },
+  
+    try {
+      const response = await this.authService.login(email, password);
+      console.log('Réponse du serveur:', response);
+      await this.storageService.setItem('authToken', response.access_token);
+      await this.storageService.setItem('userId', response.user.id.toString());
+      await this.saveCredentials({ email, password });
+      this.router.navigate(['/home']);
+    } catch (error) {
+      await loading.dismiss();
+      const alert = await this.alertController.create({
+        header: 'Erreur de connexion',
+        message: 'Identifiants incorrects ou problème de connexion.',
+        buttons: ['OK'],
       });
-      
+      await alert.present();
+      console.error('Erreur de connexion:', error);
+    } finally {
+      await loading.dismiss();
+    }
   }
-
+  
   async performBiometricVerification() {
     try {
       const result = await NativeBiometric.isAvailable();
@@ -145,36 +133,38 @@ export class LoginPage {
       const credentials = await NativeBiometric.getCredentials({
         server: this.server,
       });
-
+  
       const loading = await this.loadingController.create({
         message: 'Connexion en cours...',
       });
       await loading.present();
-
+  
       const email = credentials.username;
       const password = credentials.password;
-
-      this.authService.login(email, password).subscribe({
-        next: async (response) => {
-          await loading.dismiss();
-          localStorage.setItem('authToken', response.token);
-          this.router.navigate(['/home']);
-        },
-        error: async (error) => {
-          await loading.dismiss();
-          const alert = await this.alertController.create({
-            header: 'Erreur de connexion',
-            message: 'Impossible de se connecter avec les identifiants biométriques.',
-            buttons: ['OK'],
-          });
-          await alert.present();
-          console.error('Erreur de connexion:', error);
-        },
-      });
+  
+      try {
+        const response = await this.authService.login(email, password);
+        await loading.dismiss();
+        await this.storageService.setItem('authToken', response.access_token);
+        await this.storageService.setItem('userId', response.user.id.toString());
+        this.router.navigate(['/home']);
+      } catch (error) {
+        await loading.dismiss();
+        const alert = await this.alertController.create({
+          header: 'Erreur de connexion',
+          message: 'Impossible de se connecter avec les identifiants biométriques.',
+          buttons: ['OK'],
+        });
+        await alert.present();
+        console.error('Erreur de connexion:', error);
+      }
+  
     } catch (e) {
       console.log(e);
     }
   }
+  
+  
 
   async deleteCredentials() {
     try {

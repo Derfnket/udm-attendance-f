@@ -1,4 +1,5 @@
-//profile.page.ts
+// src/app/pages/profile/profile.page.ts
+
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -6,6 +7,7 @@ import { IonicModule, LoadingController, AlertController, NavController, ToastCo
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { AuthService } from 'src/app/services/auth.service';
 import { Router } from '@angular/router';
+import { StorageService } from 'src/app/services/storage.service'; // Importer StorageService
 
 @Component({
   selector: 'app-profile',
@@ -18,7 +20,7 @@ export class ProfilePage implements OnInit {
   profileForm!: FormGroup;
   user: any;
   profileImage: string | null = null;
-  server = 'https://b6d7-154-72-150-173.ngrok-free.app'; // Remplacer par l'URL de votre serveur
+  server = 'http://192.168.211.126'; // Remplacer par l'URL de votre serveur
 
   constructor(
     private authService: AuthService,
@@ -27,7 +29,8 @@ export class ProfilePage implements OnInit {
     private alertController: AlertController,
     private toastController: ToastController,
     private navCtrl: NavController,
-    private router: Router
+    private router: Router,
+    private storageService: StorageService // Injection de StorageService
   ) {}
 
   ngOnInit() {
@@ -44,60 +47,40 @@ export class ProfilePage implements OnInit {
   }
 
   async loadUserProfile() {
-    const loading = await this.loadingController.create({
-      message: 'Chargement du profil...',
-    });
-    await loading.present();
+    const token = await this.storageService.getItem('authToken');
+    const userId = await this.storageService.getItem('userId');
+  
+    if (!token || !userId) {
+      console.error("Erreur: Aucun token d'authentification ou ID utilisateur trouvé.");
+      return;
+    }
   
     try {
-      const token = localStorage.getItem('authToken');
-      const userId = localStorage.getItem('userId'); // Récupérer l'ID utilisateur stocké
-  
-      if (!token || !userId) {
-        throw new Error('No auth token or user ID found');
-      }
-  
-      // Faire la requête avec l'ID utilisateur
-      this.authService.getUserProfile().subscribe({
-        next: async (response: any) => {
-          console.log('Profil utilisateur récupéré:', response);  // Log des données récupérées
-          this.user = response.data;  // Utilisez `response.data` selon votre structure de réponse
-  
-          this.profileForm.patchValue({
-            username: this.user.username,
-            email: this.user.email,
-            role: this.user.role,
-          });
-          this.profileImage = this.user.profileImage ?? '/assets/imgs/avatar.jpg';
-          await loading.dismiss();
+      const userProfileResponse = await this.authService.getUserProfile();
+      userProfileResponse.subscribe({
+        next: (response: any) => {
+          console.log("Profil utilisateur récupéré:", response);
+          // Mettre à jour l'interface utilisateur avec les données du profil
         },
-        error: async (error) => {
-          await loading.dismiss();
-          const alert = await this.alertController.create({
-            header: 'Erreur',
-            message: 'Impossible de charger le profil utilisateur.',
-            buttons: ['OK'],
-          });
-          await alert.present();
+        error: (error: any) => {
+          console.error("Erreur lors de la récupération du profil:", error);
+          if (error.status === 200) {
+            console.error("La réponse est peut-être au format HTML inattendu :", error.error.text);
+          }
         },
       });
     } catch (e) {
-      console.error('Erreur lors du chargement du profil:', e);
-      await loading.dismiss();
+      console.error("Exception lors de la récupération du profil utilisateur:", e);
     }
   }
   
-  
-decodeToken(token: string): any {
+  decodeToken(token: string): any {
     try {
         return JSON.parse(atob(token.split('.')[1]));
     } catch (e) {
         return null;
     }
-}
-
-
-  
+  }
 
   async updateProfile() {
     if (this.profileForm.invalid) {
@@ -112,6 +95,7 @@ decodeToken(token: string): any {
 
     this.authService.updateUserProfile(this.profileForm.value).subscribe({
       next: async () => {
+        console.log('Profil mis à jour avec succès');
         await loading.dismiss();
         const toast = await this.toastController.create({
           message: 'Profil mis à jour avec succès',
@@ -121,6 +105,7 @@ decodeToken(token: string): any {
         toast.present();
       },
       error: async () => {
+        console.error('Erreur lors de la mise à jour du profil');
         await loading.dismiss();
         const alert = await this.alertController.create({
           header: 'Erreur',
@@ -141,7 +126,7 @@ decodeToken(token: string): any {
         source: CameraSource.Photos,
       });
 
-      this.profileImage = image.dataUrl ?? ''; // Ensure profileImage is a string
+      this.profileImage = image.dataUrl ?? ''; // Assurer que profileImage est une chaîne valide
 
       const loading = await this.loadingController.create({
         message: 'Mise à jour de la photo de profil...',
@@ -150,6 +135,7 @@ decodeToken(token: string): any {
 
       this.authService.updateProfileImage(this.profileImage).subscribe({
         next: async () => {
+          console.log('Photo de profil mise à jour avec succès');
           await loading.dismiss();
           const toast = await this.toastController.create({
             message: 'Photo de profil mise à jour avec succès',
@@ -159,6 +145,7 @@ decodeToken(token: string): any {
           toast.present();
         },
         error: async () => {
+          console.error('Erreur lors de la mise à jour de la photo de profil');
           await loading.dismiss();
           const alert = await this.alertController.create({
             header: 'Erreur',
