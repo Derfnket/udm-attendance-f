@@ -1,0 +1,39 @@
+/* src/app/pages/history/history.page.scss */
+
+ion-content {
+    --background: #f7f5f8; // Couleur dominante de votre thème
+  
+    ion-list {
+      ion-item {
+        --background: rgba(255, 255, 255, 0.6);
+        margin-bottom: 10px;
+        border-radius: 10px;
+        padding: 15px;
+      }
+  
+      h2 {
+        font-size: 1.2rem;
+        color: #4E0894;
+      }
+  
+      p {
+        font-size: 0.9rem;
+        color: #000;
+      }
+    }
+  }
+  ion-card, ion-thumbnail {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  ion-footer {
+    background-color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+  }
+  
+  ion-title {
+    font-size: 1rem;
+    color: #4E0894;
+  }

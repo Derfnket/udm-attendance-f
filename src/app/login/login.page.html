@@ -1,0 +1,101 @@
+<ion-content [fullscreen]="true">
+    <div class="header-section">
+      <h1 class="app-name">UdM Attendance</h1>
+      <div class="logo-container">
+        <img [src]="'/assets/imgs/logo-universite.png'" alt="Logo Université" class="university-logo" />
+      </div>
+    </div>
+  
+    <ion-card>
+      <form [formGroup]="form">
+        <div class="ion-text-center ion-margin-vertical lock">
+          <ion-icon name="lock-closed"></ion-icon>
+        </div>
+  
+        <ion-item lines="none" class="ion-margin-horizontal ion-margin-top">
+          <ion-button slot="start" fill="clear" color="medium">
+            <ion-icon slot="icon-only" name="mail-outline"></ion-icon>
+          </ion-button>
+          <ion-input
+            labelPlacement="floating"
+            type="email"
+            inputmode="email"
+            formControlName="email"
+            placeholder="Entrez votre adresse email"
+            enterkeyhint="next"
+          >
+            <div slot="label">Email <ion-text color="danger">*</ion-text></div>
+          </ion-input>
+        </ion-item>
+  
+        <ion-item class="ion-margin" lines="none">
+          <ion-button slot="start" fill="clear" color="dark">
+            <ion-icon slot="icon-only" name="key-outline"></ion-icon>
+          </ion-button>
+  
+          <ion-input
+            labelPlacement="floating"
+            [type]="isPwdVisible ? 'text' : 'password'"
+            [inputmode]="isPwdVisible ? 'text' : 'password'"
+            placeholder="Entrez votre mot de passe"
+            formControlName="password"
+            enterkeyhint="enter"
+          >
+            <div slot="label">Mot de passe <ion-text color="danger">*</ion-text></div>
+          </ion-input>
+          <ion-button
+            slot="end"
+            fill="clear"
+            color="danger"
+            (click)="togglePwdVisibility()"
+          >
+            <ion-icon
+              slot="icon-only"
+              [name]="isPwdVisible ? 'eye-off-outline' : 'eye-outline'"
+            ></ion-icon>
+          </ion-button>
+        </ion-item>
+  
+        <div class="ion-text-right ion-margin-horizontal">
+          <ion-text class="fwd" color="light">Mot de passe oublié ?</ion-text>
+        </div>
+  
+        <div class="ion-margin submit">
+          <ion-button expand="block" size="large" (click)="onSubmit()">
+            <ion-text><strong>Se connecter</strong></ion-text>
+          </ion-button>
+        </div>
+      </form>
+  
+      <ion-row class="ion-margin authorize">
+        <ion-col size="9">
+          <ion-button
+            expand="block"
+            size="large"
+            class="faceid"
+            (click)="performBiometricVerification()"
+          >
+            <ion-text class="ion-text-wrap">
+              <strong>S'authentifier avec la biométrie</strong>
+              <span>(Face ID / Empreinte digitale)</span>
+            </ion-text>
+          </ion-button>
+        </ion-col>
+        <ion-col size="3">
+          <ion-button
+            expand="block"
+            size="large"
+            color="light"
+            (click)="deleteCredentials()"
+          >
+            <ion-icon slot="icon-only" name="trash" color="danger"></ion-icon>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-card>
+  </ion-content>
+  <ion-footer>
+    <ion-toolbar>
+      <ion-title>&copy; 2024 UdM Attendance</ion-title>
+    </ion-toolbar>
+  </ion-footer>

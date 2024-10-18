@@ -1,20 +1,79 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
+    <ion-title>Page d'acceuil UdM Attendance</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content>
+  <ion-item lines="none" class="ion-margin-vertical">
+    <ion-label>
+      Bonjour,
+      <p>
+        <ion-text color="dark"> {{ userName }} </ion-text>
+      </p>
+    </ion-label>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
-  </div>
+    <ion-thumbnail slot="end">
+      <img [src]="profileImage" alt="Image du profil" />
+    </ion-thumbnail>
+  </ion-item>
+
+  <ion-list-header> Vos Actions </ion-list-header>
+
+  <ion-row class="ion-margin">
+    <ion-col size="6" class="ion-text-center">
+      <ion-card color="light" routerLink="/arrival">
+        <ion-thumbnail [style.background]="'rgba(240,94,112, 0.2)'">
+          <ion-icon name="log-in-outline" color="tertiary"></ion-icon>
+        </ion-thumbnail>
+
+        <ion-label>Enregistrer Arrivée</ion-label>
+      </ion-card>
+    </ion-col>
+
+    <ion-col size="6" class="ion-text-center">
+      <ion-card color="light" routerLink="/departure">
+        <ion-thumbnail [style.background]="'rgba(255,152,0, 0.2)'">
+          <ion-icon name="log-out-outline" color="warning"></ion-icon>
+        </ion-thumbnail>
+
+        <ion-label>Enregistrer Départ</ion-label>
+      </ion-card>
+    </ion-col>
+
+    <ion-col size="6" class="ion-text-center">
+      <ion-card color="light" routerLink="/history">
+        <ion-thumbnail [style.background]="'rgba(76,175,80, 0.2)'">
+          <ion-icon name="document-text-outline" color="success"></ion-icon>
+        </ion-thumbnail>
+
+        <ion-label>Historique des Présences</ion-label>
+      </ion-card>
+    </ion-col>
+
+    <ion-col size="6" class="ion-text-center">
+      <ion-card color="light" routerLink="/profile">
+        <ion-thumbnail [style.background]="'rgba(94,155,240, 0.2)'">
+          <ion-icon name="person-circle-outline" color="secondary"></ion-icon>
+        </ion-thumbnail>
+
+        <ion-label>Profil Utilisateur</ion-label>
+      </ion-card>
+    </ion-col>
+  </ion-row>
+
+  <ion-toast
+    [isOpen]="isToast"
+    [message]="toastData?.message"
+    [position]="'bottom'"
+    [color]="toastData?.color"
+    [duration]="3000"
+    (didDismiss)="isToast = false"
+  ></ion-toast>
 </ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-title>&copy; 2024 UdM Attendance</ion-title>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,165 @@
+/* src/app/pages/auth/login/login.page.scss */
+
+ion-content {
+    --background: #f0f2f5; /* Couleur de fond générale */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .header-section {
+    text-align: center;
+    margin-bottom: 20px;
+  
+    .app-name {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #4e0894; /* Couleur principale */
+      margin-bottom: 10px;
+    }
+  
+    .logo-container {
+      img.university-logo {
+        width: 150px;
+        height: auto;
+        object-fit: contain;
+      }
+    }
+  }
+  
+  ion-card {
+    width: 90%;
+    max-width: 400px;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: #ffffff; /* Fond blanc pour le card */
+  }
+  
+  .lock {
+    font-size: 3rem;
+    color: #4e0894; /* Couleur de l'icône lock */
+  }
+  
+  ion-item {
+    display: flex;
+    align-items: center;
+  
+    ion-button {
+      --padding-start: 0;
+      --padding-end: 0;
+      margin-right: 10px;
+    }
+  
+    ion-input {
+      flex: 1;
+      --padding-start: 0;
+      --padding-end: 0;
+  
+      .label {
+        font-weight: bold;
+      }
+    }
+  }
+  
+  .fwd {
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  
+  .submit {
+    margin-top: 20px;
+  
+    ion-button {
+      --background: linear-gradient(90deg, #4e0894, #b006d0);
+      --border-radius: 20px;
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+  }
+  
+  .authorize {
+    margin-top: 20px;
+  
+    ion-button.faceid {
+      background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+      border-radius: 20px;
+      color: #ffffff;
+  
+      ion-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+  
+        strong {
+          font-size: 1rem;
+        }
+  
+        span {
+          font-size: 0.8rem;
+          opacity: 0.8;
+        }
+      }
+    }
+  
+    ion-button[color="light"] {
+      background: #f0f2f5;
+      border-radius: 20px;
+  
+      ion-icon {
+        font-size: 1.5rem;
+        color: #ff3b30; /* Couleur de l'icône trash */
+      }
+    }
+  }
+  
+  ion-toast {
+    --background: rgba(0, 0, 0, 0.8);
+    --color: #ffffff;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+  
+  /* Responsivité pour les petits écrans */
+  @media (max-width: 600px) {
+    ion-card {
+      width: 95%;
+      padding: 15px;
+    }
+  
+    .app-name {
+      font-size: 1.8rem;
+    }
+  
+    .logo-container img.university-logo {
+      width: 120px;
+    }
+  
+    .lock {
+      font-size: 2.5rem;
+    }
+  
+    ion-button.faceid {
+      ion-text {
+        strong {
+          font-size: 0.95rem;
+        }
+  
+        span {
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+  ion-footer {
+    background-color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+  }
+  
+  ion-title {
+    font-size: 1rem;
+    color: #4E0894;
+  }
