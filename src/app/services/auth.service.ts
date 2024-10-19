@@ -137,21 +137,50 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/presence`, payload, { headers });
   }
 
-  async getUserProfile() {
-    const token = await this.storageService.getItem('authToken');
-    const userId = await this.storageService.getItem('userId'); 
+  async getUserProfile(): Promise<any> {
+    try {
+      // Récupérer le token d'authentification et l'ID utilisateur
+      const token = await this.storageService.getItem('authToken');
+      const userId = await this.storageService.getItem('userId'); 
   
-    if (!token || !userId) {
-      console.error("Erreur: Aucun token d'authentification ou ID utilisateur trouvé.");
-      throw new Error('No auth token or user ID found');
+      // Vérifier si le token et l'ID utilisateur sont présents
+      if (!token || !userId) {
+        console.error("Erreur: Aucun token d'authentification ou ID utilisateur trouvé.");
+        throw new Error('No auth token or user ID found');
+      }
+  
+      // Créer les en-têtes de la requête avec le token d'authentification
+      const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+      
+      // Log pour vérifier que la requête est prête à être envoyée
+      console.log(`Envoi de la requête pour récupérer le profil utilisateur avec UserID: ${userId}`);
+  
+      // Envoyer la requête HTTP pour récupérer le profil utilisateur
+      const response = await this.http.get(`${this.apiUrl}/admin/users/profile/${userId}`, {
+        headers,
+        responseType: 'json'  // Forcer la réponse à être traitée comme JSON
+      }).toPromise();
+  
+      // Log de la réponse pour vérifier la structure et le contenu
+      console.log("Profil utilisateur récupéré avec succès:", response);
+  
+      return response;
+    } catch (error: any) { // Préciser que 'error' est de type 'any'
+      // Gestion des erreurs : log détaillé pour diagnostic
+      if (error.status === 0) {
+        console.error("Erreur réseau: Impossible de se connecter au serveur.");
+      } else if (error.status >= 400 && error.status < 500) {
+        console.error("Erreur côté client:", error.message);
+      } else if (error.status >= 500) {
+        console.error("Erreur côté serveur:", error.message);
+      } else {
+        console.error("Erreur inattendue lors de la récupération du profil utilisateur:", error);
+      }
+      throw error; // Relancer l'erreur pour que l'appelant puisse la gérer
     }
-  
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.get(`${this.apiUrl}/admin/users/profile/${userId}`, {
-      headers,
-      responseType: 'json'  // Force la réponse à être traitée comme JSON
-    });
   }
+  
+  
   
 
   
@@ -161,6 +190,8 @@ export class AuthService {
   }
 
   updateProfileImage(imageData: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/admin/users/update-profile-image`, { image: imageData });
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
+    return this.http.put(`${this.apiUrl}/admin/users/update-profile-image`, { image: imageData }, { headers });
   }
+  
 }

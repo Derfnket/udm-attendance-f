@@ -20,7 +20,7 @@ export class ProfilePage implements OnInit {
   profileForm!: FormGroup;
   user: any;
   profileImage: string | null = null;
-  server = 'http://192.168.211.126'; // Remplacer par l'URL de votre serveur
+  server = 'https://udm-attendance.loca.lt'; // Remplacer par l'URL de votre serveur
 
   constructor(
     private authService: AuthService,
@@ -56,23 +56,33 @@ export class ProfilePage implements OnInit {
     }
   
     try {
+      // Utiliser await pour obtenir directement la réponse de getUserProfile
       const userProfileResponse = await this.authService.getUserProfile();
-      userProfileResponse.subscribe({
-        next: (response: any) => {
-          console.log("Profil utilisateur récupéré:", response);
-          // Mettre à jour l'interface utilisateur avec les données du profil
-        },
-        error: (error: any) => {
-          console.error("Erreur lors de la récupération du profil:", error);
-          if (error.status === 200) {
-            console.error("La réponse est peut-être au format HTML inattendu :", error.error.text);
-          }
-        },
-      });
-    } catch (e) {
+      console.log("Profil utilisateur récupéré:", userProfileResponse);
+  
+      if (userProfileResponse && userProfileResponse.data) {
+        this.user = userProfileResponse.data;
+        this.profileForm.patchValue({
+          username: this.user.username,
+          email: this.user.email,
+          role: this.user.role,
+        });
+        this.profileImage = this.user.profileImage ?? '/assets/imgs/avatar.jpg';
+      } else {
+        console.warn("Les données de l'utilisateur sont manquantes ou incorrectes.");
+      }
+    } catch (e: any) {
       console.error("Exception lors de la récupération du profil utilisateur:", e);
+      const alert = await this.alertController.create({
+        header: 'Erreur',
+        message: 'Impossible de charger le profil utilisateur.',
+        buttons: ['OK'],
+      });
+      await alert.present();
     }
   }
+  
+  
   
   decodeToken(token: string): any {
     try {
@@ -120,19 +130,20 @@ export class ProfilePage implements OnInit {
   async changeProfileImage() {
     try {
       const image = await Camera.getPhoto({
-        quality: 90,
+        quality: 50, // Réduisez la qualité pour réduire la taille de l'image
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Photos,
       });
-
-      this.profileImage = image.dataUrl ?? ''; // Assurer que profileImage est une chaîne valide
-
+  
+      // Assurez-vous que l'image est bien convertie en base64
+      this.profileImage = image.dataUrl ?? ''; // Assigner l'image récupérée
+  
       const loading = await this.loadingController.create({
         message: 'Mise à jour de la photo de profil...',
       });
       await loading.present();
-
+  
       this.authService.updateProfileImage(this.profileImage).subscribe({
         next: async () => {
           console.log('Photo de profil mise à jour avec succès');
@@ -144,8 +155,8 @@ export class ProfilePage implements OnInit {
           });
           toast.present();
         },
-        error: async () => {
-          console.error('Erreur lors de la mise à jour de la photo de profil');
+        error: async (error) => {
+          console.error('Erreur lors de la mise à jour de la photo de profil', error);
           await loading.dismiss();
           const alert = await this.alertController.create({
             header: 'Erreur',
@@ -159,7 +170,7 @@ export class ProfilePage implements OnInit {
       console.log('Erreur lors du changement de la photo de profil', e);
     }
   }
-
+   
   goBack() {
     this.navCtrl.back();
   }

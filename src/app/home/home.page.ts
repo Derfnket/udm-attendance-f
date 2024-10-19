@@ -1,5 +1,3 @@
-// src/app/pages/home/home.page.ts
-
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -22,11 +20,13 @@ import {
   IonToast,
   IonBadge,
   IonFooter,
-  IonBackButton
+  IonBackButton,
+  AlertController // Ajouté pour l'utilisation des alertes
 } from '@ionic/angular/standalone';
 import { CartService } from '../services/cart.service'; 
 import { Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { CommonModule } from '@angular/common';
 import { StorageService } from '../services/storage.service'; // Importer StorageService
 
 @Component({
@@ -36,6 +36,7 @@ import { StorageService } from '../services/storage.service'; // Importer Storag
   standalone: true,
   imports: [
     IonBackButton,
+    CommonModule,
     IonFooter,
     IonBadge,
     IonToast,
@@ -68,42 +69,40 @@ export class HomePage implements OnInit, OnDestroy {
   private cartService = inject(CartService);
   private authService = inject(AuthService); // Injection d'AuthService
   private storageService = inject(StorageService); // Injection de StorageService
+  private alertController = inject(AlertController); // Injection d'AlertController
 
   constructor(private router: Router) {}
 
   ngOnInit() {
-     // Charger les informations de l'utilisateur, y compris l'image de profil
-     this.loadUserProfile();
-    }
+    // Charger les informations de l'utilisateur, y compris l'image de profil
+    this.loadUserProfile();
+  }
 
-    async loadUserProfile() {
-      const token = await this.storageService.getItem('authToken');
-      const userId = await this.storageService.getItem('userId');
-    
-      if (!token || !userId) {
-        console.error("Erreur: Aucun token d'authentification ou ID utilisateur trouvé.");
-        return;
-      }
-    
-      try {
-        const userProfileResponse = await this.authService.getUserProfile();
-        userProfileResponse.subscribe({
-          next: (response: any) => {
-            console.log("Profil utilisateur récupéré:", response);
-            // Mettre à jour l'interface utilisateur avec les données du profil
-          },
-          error: (error: any) => {
-            console.error("Erreur lors de la récupération du profil:", error);
-            if (error.status === 200) {
-              console.error("La réponse est peut-être au format HTML inattendu :", error.error.text);
-            }
-          },
-        });
-      } catch (e) {
-        console.error("Exception lors de la récupération du profil utilisateur:", e);
-      }
+  async loadUserProfile() {
+    const token = await this.storageService.getItem('authToken');
+    const userId = await this.storageService.getItem('userId');
+  
+    if (!token || !userId) {
+      console.error("Erreur: Aucun token d'authentification ou ID utilisateur trouvé.");
+      return;
     }
-    
+  
+    try {
+      const userProfileResponse = await this.authService.getUserProfile();
+      console.log("Profil utilisateur récupéré:", userProfileResponse);
+  
+      if (userProfileResponse && userProfileResponse.data) {
+        this.userName = userProfileResponse.data.username || 'UdM User';
+        console.log("Nom d'utilisateur défini :", this.userName); // Ajout d'un log pour vérifier
+        this.profileImage = userProfileResponse.data.profileImage ?? '/assets/imgs/avatar.jpg';
+      } else {
+        console.warn("Les données de l'utilisateur sont manquantes ou incorrectes.");
+      }
+    } catch (e: any) {
+      console.error("Exception lors de la récupération du profil utilisateur:", e);
+    }
+  }
+  
   goToArrival() {
     this.router.navigate(['/arrival']);
   }
