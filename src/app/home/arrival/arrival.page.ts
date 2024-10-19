@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { AlertController, IonicModule, LoadingController, ToastController } from '@ionic/angular';
 import { ArrivalService } from 'src/app/services/arrival.service'; 
 import { HttpClientModule } from '@angular/common/http';
-// import { IonLabel, IonItem, IonToolbar, IonTitle, IonButtons, IonBackButton, IonContent, IonCard, IonCardContent, IonButton } from "@ionic/angular/standalone";
 import { CommonModule } from '@angular/common';
 import { AuthService } from 'src/app/services/auth.service';
 import { GeolocationService } from 'src/app/services/geolocation.service'; 
@@ -39,6 +38,7 @@ export class ArrivalPage implements OnInit {
     await loading.present();
 
     try {
+      console.log("Démarrage du scan QR pour l'arrivée.");
       const qrCode = await this.qrScannerService.startScan();
       if (!qrCode) {
         throw new Error('Le QR code scanné est vide.');
@@ -47,22 +47,26 @@ export class ArrivalPage implements OnInit {
       this.scannedResult = qrCode;
 
       // Vérification biométrique
+      console.log("Vérification biométrique en cours...");
       const biometricToken = await this.authService.verifyBiometric('Authentification biométrique pour l\'arrivée');
       if (!biometricToken) {
-        throw new Error('Échec de la vérification biométrique.');
+        throw new Error('Échec de la vérification biométrique. Assurez-vous d\'utiliser vos paramètres biométriques enregistrés.');
       }
 
       // Récupération de la géolocalisation
+      console.log("Récupération de la géolocalisation...");
       const location = await this.geolocationService.getCurrentLocation();
       if (!location) {
-        throw new Error('Impossible d\'obtenir la localisation GPS.');
+        throw new Error('Impossible d\'obtenir la localisation GPS. Activez votre GPS et réessayez.');
       }
 
       // Enregistrement de l'arrivée
+      console.log("Enregistrement de l'arrivée...");
       await (await this.authService.recordArrival(qrCode, location.latitude, location.longitude, biometricToken)).toPromise();
       await this.presentToast('Arrivée enregistrée avec succès.');
     } catch (error: any) {
-      await this.presentAlert('Erreur', error.message || 'Une erreur est survenue.');
+      console.error("Erreur lors de l'enregistrement de l'arrivée:", error.message);
+      await this.presentAlert('Erreur', error.message || 'Une erreur est survenue. Veuillez réessayer.');
     } finally {
       await loading.dismiss();
     }
@@ -86,7 +90,6 @@ export class ArrivalPage implements OnInit {
     toast.present();
   }
 
-  
   ngOnDestroy() {
     this.qrScannerService.stopScan();
   }
