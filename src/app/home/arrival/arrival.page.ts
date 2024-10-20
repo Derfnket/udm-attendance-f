@@ -36,30 +36,30 @@ export class ArrivalPage implements OnInit {
       message: 'Veuillez patienter...',
     });
     await loading.present();
-
+  
     try {
       console.log("Démarrage du scan QR pour l'arrivée.");
       const qrCode = await this.qrScannerService.startScan();
       if (!qrCode) {
         throw new Error('Le QR code scanné est vide.');
       }
-
+  
       this.scannedResult = qrCode;
-
+  
       // Vérification biométrique
       console.log("Vérification biométrique en cours...");
       const biometricToken = await this.authService.verifyBiometric('Authentification biométrique pour l\'arrivée');
       if (!biometricToken) {
         throw new Error('Échec de la vérification biométrique. Assurez-vous d\'utiliser vos paramètres biométriques enregistrés.');
       }
-
+  
       // Récupération de la géolocalisation
       console.log("Récupération de la géolocalisation...");
       const location = await this.geolocationService.getCurrentLocation();
       if (!location) {
         throw new Error('Impossible d\'obtenir la localisation GPS. Activez votre GPS et réessayez.');
       }
-
+  
       // Enregistrement de l'arrivée
       console.log("Enregistrement de l'arrivée...");
       await (await this.authService.recordArrival(qrCode, location.latitude, location.longitude, biometricToken)).toPromise();
@@ -71,7 +71,7 @@ export class ArrivalPage implements OnInit {
       await loading.dismiss();
     }
   }
-
+  
   async presentAlert(header: string, message: string) {
     const alert = await this.alertController.create({
       header,

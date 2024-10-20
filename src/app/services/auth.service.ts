@@ -3,11 +3,12 @@
 import { jwtDecode } from 'jwt-decode';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { NativeBiometric } from 'capacitor-native-biometric';
 import { StorageService } from './storage.service'; // Importer StorageService
+import { AlertController } from '@ionic/angular';
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +16,11 @@ import { StorageService } from './storage.service'; // Importer StorageService
 export class AuthService {
   private apiUrl = `${environment.apiUrl}`;
 
-  constructor(private http: HttpClient, private storageService: StorageService) {}
+  constructor(
+    private http: HttpClient,
+    private storageService: StorageService,
+    private alertController: AlertController
+  ) {}
 
   async login(username: string, password: string): Promise<any> {
     console.log("Tentative de connexion avec:", username);
@@ -110,32 +115,63 @@ export class AuthService {
   }
 
   // Méthode pour enregistrer l'arrivée
-  async recordArrival(qrData: string, latitude: number, longitude: number, biometricToken: string): Promise<Observable<any>> {
-    const payload = {
-      qrData,
-      location: { lat: latitude, lon: longitude },
-      actionType: 'arrival',
-      biometricToken,
-    };
-
-    const token = await this.getToken();
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.post(`${this.apiUrl}/presence`, payload, { headers });
+ // Méthode pour gérer et afficher les erreurs
+ private async handleError(error: any): Promise<void> {
+  let errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
+  if (error.error && error.error.message) {
+    errorMessage = error.error.message;
+  } else if (error.message) {
+    errorMessage = error.message;
   }
 
-  // Méthode pour enregistrer le départ
-  async recordDeparture(qrData: string, latitude: number, longitude: number, biometricToken: string): Promise<Observable<any>> {
-    const payload = {
-      qrData,
-      location: { lat: latitude, lon: longitude },
-      actionType: 'departure',
-      biometricToken,
-    };
+  console.error("Erreur rencontrée:", errorMessage);
 
-    const token = await this.getToken();
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.post(`${this.apiUrl}/presence`, payload, { headers });
-  }
+  // Afficher un pop-up avec le message d'erreur
+  const alert = await this.alertController.create({
+    header: 'Erreur',
+    message: errorMessage,
+    buttons: ['OK'],
+  });
+  await alert.present();
+}
+
+// Méthode pour enregistrer l'arrivée avec gestion d'erreurs
+async recordArrival(qrData: string, latitude: number, longitude: number, biometricToken: string): Promise<Observable<any>> {
+  const payload = {
+    qrData,
+    location: { lat: latitude, lon: longitude },
+    actionType: 'arrival',
+    biometricToken,
+  };
+
+  const token = await this.getToken();
+  const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  return this.http.post(`${this.apiUrl}/presence`, payload, { headers }).pipe(
+    catchError(async (error) => {
+      await this.handleError(error);
+      return throwError(() => new Error(error));
+    })
+  );
+}
+
+// Méthode pour enregistrer le départ avec gestion d'erreurs
+async recordDeparture(qrData: string, latitude: number, longitude: number, biometricToken: string): Promise<Observable<any>> {
+  const payload = {
+    qrData,
+    location: { lat: latitude, lon: longitude },
+    actionType: 'departure',
+    biometricToken,
+  };
+
+  const token = await this.getToken();
+  const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  return this.http.post(`${this.apiUrl}/presence`, payload, { headers }).pipe(
+    catchError(async (error) => {
+      await this.handleError(error);
+      return throwError(() => new Error(error));
+    })
+  );
+}
 
   async getUserProfile(): Promise<any> {
     try {
